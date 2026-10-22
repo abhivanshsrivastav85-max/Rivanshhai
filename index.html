@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Rivanshhai AI</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Markdown & Code Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            gemBg: '#08080a',
+            gemSurface: '#131315',
+            gemCard: '#1e1f22',
+            gemCardHover: '#282a2e',
+            gemBorder: '#2c2e33',
+            gemBlue: '#7cacf8',
+            gemBlueDark: '#1b4d99',
+            gemTextMuted: '#9aa0a6'
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Gemini subtle blue glow background */
+    .gemini-ambient {
+      background: radial-gradient(circle at 50% 85%, #0e2142 0%, #080b12 45%, #050608 100%);
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2a2c30;
+      border-radius: 9999px;
+    }
+
+    /* Animated Gemini Star */
+    .gemini-star-glow {
+      filter: drop-shadow(0 0 25px rgba(124, 172, 248, 0.45));
+      animation: floatPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes floatPulse {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-6px) scale(1.03); }
+    }
+
+    /* Bottom Sheet slide animations */
+    .sheet-drawer {
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    }
+    .sheet-drawer.closed {
+      transform: translateY(105%);
+      pointer-events: none;
+    }
+
+    /* Side Drawer */
+    .sidebar-drawer {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sidebar-drawer.closed {
+      transform: translateX(-100%);
+    }
+
+    /* Waveform animation */
+    @keyframes wavePulse {
+      0%, 100% { height: 6px; }
+      50% { height: 22px; }
+    }
+    .wave-bar {
+      width: 3px;
+      background: white;
+      border-radius: 99px;
+      animation: wavePulse 1.2s ease-in-out infinite;
+    }
+    .wave-bar:nth-child(2) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.4s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.1s; }
+
+    /* Code block styling */
+    pre {
+      background-color: #121316 !important;
+      border: 1px solid #282a2e;
+      border-radius: 12px;
+      padding: 14px;
+      margin: 10px 0;
+      position: relative;
+      overflow-x: auto;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body class="bg-gemBg text-neutral-100 font-sans h-screen w-screen overflow-hidden flex flex-col select-none">
+
+  <!-- ==================== TOP NAVIGATION HEADER ==================== -->
+  <header class="h-14 px-4 flex items-center justify-between border-b border-white/5 bg-gemBg/80 backdrop-blur z-20 shrink-0">
+    <!-- Left Menu & Model Picker -->
+    <div class="flex items-center gap-3">
+      <!-- Hamburger Menu (Image 106551) -->
+      <button onclick="toggleSidebar(true)" class="p-2 -ml-1 text-neutral-300 hover:text-white rounded-full hover:bg-white/10 transition" aria-label="Open Drawer">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"></path>
+        </svg>
+      </button>
+
+      <!-- Model Dropdown Switcher (Image 106554) -->
+      <div class="relative">
+        <button id="modelDropdownBtn" onclick="toggleModelDropdown()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full hover:bg-white/10 transition text-sm font-medium text-neutral-200">
+          <span id="currentModelLabel">Rivanshhai Flash</span>
+          <svg class="w-3.5 h-3.5 text-neutral-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
+          </svg>
+        </button>
+
+        <!-- Dropdown Menu List -->
+        <div id="modelDropdownMenu" class="hidden absolute top-10 left-0 w-64 bg-gemCard border border-gemBorder rounded-2xl shadow-2xl p-2 z-50">
+          <div onclick="selectModel('3.5 Flash-Lite', 'Fastest answers')" class="model-item p-2.5 rounded-xl hover:bg-white/5 cursor-pointer flex items-center justify-between">
+            <div>
+              <div class="text-sm font-medium text-white">3.5 Flash-Lite</div>
+              <div class="text-xs text-neutral-400">Fastest answers</div>
+            </div>
+            <span class="check-icon hidden text-gemBlue text-sm">✓</span>
+          </div>
+
+          <div onclick="selectModel('3.8 Flash', 'All-around help')" class="model-item p-2.5 rounded-xl hover:bg-white/5 cursor-pointer flex items-center justify-between">
+            <div>
+              <div class="text-sm font-medium text-white">3.8 Flash</div>
+              <div class="text-xs text-neutral-400">All-around help</div>
+            </div>
+            <span class="check-icon text-gemBlue text-sm">✓</span>
+          </div>
+
+          <div onclick="selectModel('3.1 Pro', 'Advanced reasoning')" class="model-item p-2.5 rounded-xl hover:bg-white/5 cursor-pointer flex items-center justify-between">
+            <div>
+              <div class="text-sm font-medium text-white">3.1 Pro</div>
+              <div class="text-xs text-neutral-400">Advanced reasoning</div>
+            </div>
+            <span class="check-icon hidden text-gemBlue text-sm">✓</span>
+          </div>
+
+          <div onclick="selectModel('4 Argon', 'Complex tasks')" class="model-item p-2.5 rounded-xl hover:bg-white/5 cursor-pointer flex items-center justify-between">
+            <div>
+              <div class="text-sm font-medium text-white flex items-center gap-1.5">
+                4 Argon <span class="bg-neutral-700 text-[10px] px-1.5 py-0.5 rounded text-neutral-200">New</span>
+              </div>
+              <div class="text-xs text-neutral-400">Complex tasks</div>
+            </div>
+            <span class="check-icon hidden text-gemBlue text-sm">✓</span>
+          </div>
+
+          <div class="border-t border-white/10 my-1"></div>
+
+          <div class="p-2 text-xs text-neutral-400 flex items-center justify-between cursor-pointer hover:text-white" onclick="alert('Thinking level: Default')">
+            <span>Thinking level</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Header Actions -->
+    <div class="flex items-center gap-2">
+      <!-- Edit / New Chat Sparkle Icon (Image 106551) -->
+      <button onclick="startNewChat()" class="p-2 text-neutral-300 hover:text-white rounded-full hover:bg-white/10 transition" title="New conversation">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
+        </svg>
+      </button>
+
+      <!-- Profile Avatar Button (Image 106551, 106556) -->
+      <button onclick="openProfileModal()" class="relative p-0.5 rounded-full ring-2 ring-transparent hover:ring-gemBlue/50 transition" aria-label="Profile Account">
+        <img id="navAvatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" class="w-8 h-8 rounded-full object-cover border border-white/20" alt="Abhivansh">
+        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-gemBg"></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN VIEWPORT ==================== -->
+  <main class="flex-1 relative overflow-hidden flex flex-col gemini-ambient">
+    
+    <!-- Messages Scroll Area -->
+    <div id="chatScrollArea" class="flex-1 overflow-y-auto px-4 md:px-28 lg:px-64 py-6 space-y-6">
+      
+      <!-- Home Welcome Screen (Matches Image 106551) -->
+      <div id="homeWelcomeState" class="min-h-[55vh] flex flex-col items-center justify-center text-center px-4 my-auto">
+        <!-- 4-pointed Gemini colorful star icon -->
+        <div class="w-16 h-16 mb-8 gemini-star-glow">
+          <svg viewBox="0 0 100 100" class="w-full h-full">
+            <defs>
+              <linearGradient id="geminiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#4285F4"/>
+                <stop offset="35%" stop-color="#9B72CF"/>
+                <stop offset="70%" stop-color="#D96570"/>
+                <stop offset="100%" stop-color="#F2A900"/>
+              </linearGradient>
+            </defs>
+            <path d="M50 0 C50 30 70 50 100 50 C70 50 50 70 50 100 C50 70 30 50 0 50 C30 50 50 30 50 0 Z" fill="url(#geminiGrad)" />
+          </svg>
+        </div>
+
+        <h1 class="text-2xl md:text-3xl font-medium tracking-tight text-white mb-2">
+          Let’s jump in, <span id="welcomeUserName">Abhivansh</span>
+        </h1>
+      </div>
+
+      <!-- Rendered Messages Flow -->
+      <div id="messagesList" class="space-y-6 hidden">
+        <!-- Dynamic chat entries will be injected here -->
+      </div>
+    </div>
+
+    <!-- Active Attachment Thumbnail Preview -->
+    <div id="fileAttachmentPreview" class="hidden mx-4 md:mx-28 lg:mx-64 mb-2 flex items-center gap-3 bg-gemCard border border-gemBorder p-2.5 rounded-2xl w-fit max-w-sm">
+      <div id="previewIcon" class="w-10 h-10 rounded-xl bg-gemSurface flex items-center justify-center text-gemBlue text-lg">📁</div>
+      <img id="previewImageElement" class="w-10 h-10 rounded-xl object-cover hidden" alt="attachment">
+      <div class="overflow-hidden">
+        <p id="previewFileName" class="text-xs font-medium text-white truncate">image.png</p>
+        <p id="previewFileType" class="text-[10px] text-neutral-400">Attached asset</p>
+      </div>
+      <button onclick="clearAttachment()" class="text-neutral-400 hover:text-white p-1 ml-2">✕</button>
+    </div>
+
+    <!-- Bottom Input Container Area -->
+    <div class="p-3 md:pb-6 px-4 md:px-28 lg:px-64 flex flex-col items-center gap-2.5 bg-gradient-to-t from-gemBg via-gemBg/90 to-transparent">
+      
+      <!-- Chat / Task Mode Switcher (Image 106551) -->
+      <div class="flex items-center bg-[#181a1d] p-1 rounded-full border border-white/5 text-xs font-medium shadow-lg">
+        <button id="modeChatBtn" onclick="setMode('chat')" class="px-4 py-1.5 rounded-full bg-[#2a2c31] text-white transition">Chat</button>
+        <button id="modeTaskBtn" onclick="setMode('task')" class="px-4 py-1.5 rounded-full text-neutral-400 hover:text-white transition">Task</button>
+      </div>
+
+      <!-- Input Bar (Matches Image 106551 pill) -->
+      <div class="w-full bg-[#1b1c20] hover:border-neutral-600 focus-within:border-gemBlue/60 border border-white/10 rounded-full flex items-center px-3.5 py-1.5 shadow-2xl transition">
+        
+        <!-- Plus Button (Opens Bottom Sheet Tools - Image 106552, 106553) -->
+        <button onclick="toggleToolsSheet(true)" class="w-9 h-9 rounded-full flex items-center justify-center text-neutral-300 hover:text-white hover:bg-white/10 transition shrink-0" aria-label="Tools and Additions">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+          </svg>
+        </button>
+
+        <!-- Main Autosize Input Field -->
+        <textarea id="mainPromptInput" rows="1" placeholder="Ask Rivanshhai" class="flex-1 bg-transparent border-0 outline-none resize-none px-3 text-[15px] text-white placeholder-neutral-400 max-h-36 py-2 overflow-y-auto" onkeydown="handlePromptKey(event)"></textarea>
+
+        <!-- Right Tool Buttons -->
+        <div class="flex items-center gap-1.5 shrink-0">
+          
+          <!-- Mic Voice Typing Button -->
+          <button id="micButton" onclick="toggleVoiceTyping()" class="w-9 h-9 rounded-full flex items-center justify-center text-neutral-300 hover:text-white hover:bg-white/10 transition" title="Voice Search">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"></path>
+            </svg>
+          </button>
+
+          <!-- Live Audio Waveform Button (Image 106551 glowing sound icon) -->
+          <button id="liveAudioPill" onclick="toggleLiveVoiceConversation()" class="w-10 h-10 rounded-full bg-gemBlue/20 text-gemBlue border border-gemBlue/30 hover:bg-gemBlue/30 flex items-center justify-center transition" title="Start Live conversation">
+            <div class="flex items-center gap-0.5 h-5">
+              <span class="wave-bar !bg-gemBlue"></span>
+              <span class="wave-bar !bg-gemBlue"></span>
+              <span class="wave-bar !bg-gemBlue"></span>
+              <span class="wave-bar !bg-gemBlue"></span>
+            </div>
+          </button>
+
+          <!-- Send Arrow Button (Appears when user types) -->
+          <button id="sendPromptBtn" onclick="submitMessage()" class="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition shrink-0 ml-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"></path>
+            </svg>
+          </button>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ==================== SIDEBAR DRAWER (Matches Image 106555) ==================== -->
+  <div id="sidebarBackdrop" onclick="toggleSidebar(false)" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity"></div>
+  
+  <aside id="sidebarDrawer" class="sidebar-drawer closed fixed top-0 left-0 h-full w-[82vw] max-w-xs bg-gemSurface border-r border-gemBorder z-50 flex flex-col justify-between">
+    
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+      <!-- Header with Gemini/Rivanshhai Title & Search -->
+      <div class="flex items-center justify-between pb-2">
+        <h2 class="text-xl font-medium tracking-tight text-white">Rivanshhai</h2>
+        <div class="flex items-center gap-1">
+          <button onclick="promptSearchHistory()" class="p-2 text-neutral-400 hover:text-white rounded-full">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path></svg>
+          </button>
+          <button onclick="toggleSidebar(false)" class="p-2 text-neutral-400 hover:text-white rounded-full">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- New Chat Pill Button -->
+      <button onclick="startNewChat(); toggleSidebar(false);" class="w-full flex items-center gap-3.5 px-4 py-3 bg-[#1e2024] hover:bg-[#282a2f] text-white rounded-full font-medium text-sm transition">
+        <svg class="w-4 h-4 text-neutral-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"></path>
+        </svg>
+        New chat
+      </button>
+
+      <!-- Navigation List (Exact list from 106555) -->
+      <nav class="space-y-0.5 text-sm font-normal text-neutral-300">
+        <a href="javascript:void(0)" onclick="alert('Viewing Library')" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5">
+          <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"></path></svg>
+          Library
+        </a>
+        <a href="javascript:void(0)" onclick="openImageMode()" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5">
+          <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"></path></svg>
+          Images
+        </a>
+        <a href="javascript:void(0)" onclick="alert('No scheduled tasks.')" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5">
+          <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg>
+          Scheduled
+        </a>
+        <a href="javascript:void(0)" onclick="openKeyModal()" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5">
+          <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.27.1.06-.12l-.773.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.15.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.27-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z"></path></svg>
+          Customise (API Key)
+        </a>
+        <a href="javascript:void(0)" onclick="alert('Videos generation tab')" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/5">
+          <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"></path></svg>
+          Videos
+        </a>
+      </nav>
+
+      <!-- Notebooks Section (Image 106555) -->
+      <div class="pt-2">
+        <div class="text-xs font-semibold text-neutral-400 px-3 py-1 uppercase tracking-wider">Notebooks</div>
+        <button onclick="createNewNotebook()" class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-neutral-300 hover:bg-white/5 w-full text-left">
+          <span class="text-lg leading-none">+</span>
+          New notebook
+        </button>
+      </div>
+
+      <!-- All Chats List Section (Image 106555) -->
+      <div class="pt-2">
+        <div class="flex items-center justify-between px-3 py-1">
+          <span class="text-xs font-semibold text-neutral-400 uppercase tracking-wider">All</span>
+          <svg class="w-4 h-4 text-neutral-400 cursor-pointer" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z"></path></svg>
+        </div>
+
+        <div id="sidebarChatsContainer" class="mt-2 space-y-1">
+          <!-- Populated from localStorage or mock items from Image 106555 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom User Bar (Image 106555) -->
+    <div class="p-3 border-t border-gemBorder flex items-center justify-between bg-[#111215]">
+      <div onclick="openProfileModal(); toggleSidebar(false);" class="flex items-center gap-3 cursor-pointer overflow-hidden">
+        <img id="sidebarAvatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" class="w-9 h-9 rounded-full object-cover border border-white/20" alt="Avatar">
+        <div class="truncate">
+          <div id="sidebarUserName" class="text-sm font-medium text-white truncate">Abhivansh Srivastav</div>
+          <div class="text-[10px] text-neutral-400 tracking-wider font-semibold">PRO</div>
+        </div>
+      </div>
+      <button onclick="openKeyModal()" class="p-2 text-neutral-400 hover:text-white rounded-full">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ==================== TOOLS BOTTOM SHEET (Matches Images 106552 & 106553) ==================== -->
+  <div id="toolsBackdrop" onclick="toggleToolsSheet(false)" class="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 hidden transition-opacity"></div>
+  
+  <div id="toolsSheet" class="sheet-drawer closed fixed bottom-0 left-0 right-0 bg-[#16171a] border-t border-gemBorder rounded-t-[32px] p-5 z-50 max-h-[82vh] overflow-y-auto">
+    <!-- Drag indicator handle -->
+    <div class="w-10 h-1 bg-neutral-600 rounded-full mx-auto mb-4 cursor-pointer" onclick="toggleToolsSheet(false)"></div>
+
+    <!-- Top Horizontal Media Carousel Chips (Image 106552, 106553) -->
+    <div class="flex items-center gap-3 overflow-x-auto pb-4 scrollbar-none -mx-2 px-2">
+      
+      <!-- Photos Chip (File Picker) -->
+      <label class="flex flex-col items-center justify-center min-w-[76px] h-20 bg-[#222429] hover:bg-[#2c2f35] rounded-2xl cursor-pointer text-neutral-300 transition shrink-0">
+        <input type="file" accept="image/*" class="hidden" onchange="handleFileInput(event, 'photo')">
+        <svg class="w-6 h-6 mb-1 text-neutral-200" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Z"></path></svg>
+        <span class="text-xs">Photos</span>
+      </label>
+
+      <!-- Camera Chip -->
+      <label class="flex flex-col items-center justify-center min-w-[76px] h-20 bg-[#222429] hover:bg-[#2c2f35] rounded-2xl cursor-pointer text-neutral-300 transition shrink-0">
+        <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleFileInput(event, 'camera')">
+        <svg class="w-6 h-6 mb-1 text-neutral-200" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"></path></svg>
+        <span class="text-xs">Camera</span>
+      </label>
+
+      <!-- Avatar Chip -->
+      <button onclick="selectToolItem('Create avatar portrait')" class="flex flex-col items-center justify-center min-w-[76px] h-20 bg-[#222429] hover:bg-[#2c2f35] rounded-2xl text-neutral-300 transition shrink-0">
+        <svg class="w-6 h-6 mb-1 text-neutral-200" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z"></path></svg>
+        <span class="text-xs">Avatar</span>
+      </button>
+
+      <!-- Files Chip -->
+      <label class="flex flex-col items-center justify-center min-w-[76px] h-20 bg-[#222429] hover:bg-[#2c2f35] rounded-2xl cursor-pointer text-neutral-300 transition shrink-0">
+        <input type="file" class="hidden" onchange="handleFileInput(event, 'file')">
+        <svg class="w-6 h-6 mb-1 text-neutral-200" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"></path></svg>
+        <span class="text-xs">Files</span>
+      </label>
+
+      <!-- Drive Chip -->
+      <button onclick="selectToolItem('Import Google Drive documents')" class="flex flex-col items-center justify-center min-w-[76px] h-20 bg-[#222429] hover:bg-[#2c2f35] rounded-2xl text-neutral-300 transition shrink-0">
+        <svg class="w-6 h-6 mb-1 text-neutral-200" viewBox="0 0 24 24" fill="currentColor"><path d="M7.71 3.5 1.15 15l3.43 6 6.55-11.5L7.71 3.5Zm3.71 6.5 6.57 11.5H4.57L8 15.5l3.42-5.5Zm8.87 5-6.57-11.5H7.14l6.57 11.5h6.58Z"/></svg>
+        <span class="text-xs">Drive</span>
+      </button>
+
+      <!-- Notebooks Chip -->
+      <button onclick="selectToolItem('Access Project Notebooks')" class="flex flex-col items-center justify-center min-w-[76px] h-20 bg-[#222429] hover:bg-[#2c2f35] rounded-2xl text-neutral-300 transition shrink-0">
+        <svg class="w-6 h-6 mb-1 text-neutral-200" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"></path></svg>
+        <span class="text-xs">Notebooks</span>
+      </button>
+
+      <!-- Map Chip -->
+      <button onclick="selectToolItem('Search Google Maps location intelligence')" class="flex flex-col items-center justify-center min-w-[76px] h-20 bg-[#222429] hover:bg-[#2c2f35] rounded-2xl text-neutral-300 transition shrink-0">
+        <svg class="w-6 h-6 mb-1 text-neutral-200" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.284a2.25 2.25 0 0 0-2.012 0L2.616 5.72A1.125 1.125 0 0 0 2 6.726v12.355c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"></path></svg>
+        <span class="text-xs">Map</span>
+      </button>
+    </div>
+
+    <!-- Vertical Tool Action Items (Matches Image 106552, 106553) -->
+    <div class="mt-2 divide-y divide-white/5 space-y-1">
+      
+      <!-- Create images -->
+      <div onclick="selectToolItem('Generate a high resolution image of ')" class="flex items-center gap-4 py-3 px-2 rounded-2xl hover:bg-white/5 cursor-pointer">
+        <div class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-neutral-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Z"></path></svg>
+        </div>
+        <div>
+          <div class="text-sm font-medium text-white">Create images</div>
+          <div class="text-xs text-neutral-400">Visualise and edit</div>
+        </div>
+      </div>
+
+      <!-- Create videos -->
+      <div onclick="selectToolItem('Storyboard and write script for a video about ')" class="flex items-center gap-4 py-3 px-2 rounded-2xl hover:bg-white/5 cursor-pointer">
+        <div class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-neutral-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"></path></svg>
+        </div>
+        <div>
+          <div class="text-sm font-medium text-white">Create videos</div>
+          <div class="text-xs text-neutral-400">Bring ideas to life</div>
+        </div>
+      </div>
+
+      <!-- Create music -->
+      <div onclick="selectToolItem('Compose audio melody lyrics and chords for ')" class="flex items-center gap-4 py-3 px-2 rounded-2xl hover:bg-white/5 cursor-pointer">
+        <div class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-neutral-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m9 9 10.5-3m0 6.553v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a.75.75 0 0 0 .582-.728V6.666m-9.45 6.087v3.75a2.25 2.25 0 0 1-1.632 2.163l-1.32.377a1.803 1.803 0 1 1-.99-3.467l2.31-.66a.75.75 0 0 0 .582-.728v-4.5"></path></svg>
+        </div>
+        <div>
+          <div class="text-sm font-medium text-white">Create music</div>
+          <div class="text-xs text-neutral-400">Make audio tracks</div>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div onclick="selectToolItem('Open Canvas mode to code and write: ')" class="flex items-center gap-4 py-3 px-2 rounded-2xl hover:bg-white/5 cursor-pointer">
+        <div class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-neutral-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg>
+        </div>
+        <div>
+          <div class="text-sm font-medium text-white">Canvas</div>
+          <div class="text-xs text-neutral-400">Code, write or make slides</div>
+        </div>
+      </div>
+
+      <!-- Deep Research -->
+      <div onclick="selectToolItem('Perform Deep Research analysis on ')" class="flex items-center gap-4 py-3 px-2 rounded-2xl hover:bg-white/5 cursor-pointer">
+        <div class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-neutral-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607ZM10.5 7.5v6m3-3h-6"></path></svg>
+        </div>
+        <div>
+          <div class="text-sm font-medium text-white">Deep Research</div>
+          <div class="text-xs text-neutral-400">Get detailed reports</div>
+        </div>
+      </div>
+
+      <!-- Guided Learning -->
+      <div onclick="selectToolItem('Guide me step-by-step through learning: ')" class="flex items-center gap-4 py-3 px-2 rounded-2xl hover:bg-white/5 cursor-pointer">
+        <div class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-neutral-200">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"></path></svg>
+        </div>
+        <div>
+          <div class="text-sm font-medium text-white">Guided Learning</div>
+          <div class="text-xs text-neutral-400">Get step-by-step help</div>
+        </div>
+      </div>
+
+      <!-- Personal Intelligence Labs with Toggle (Image 106552, 106553) -->
+      <div class="flex items-center justify-between py-3 px-2">
+        <div class="flex items-center gap-4">
+          <div class="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center text-neutral-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"></path></svg>
+          </div>
+          <div>
+            <div class="text-sm font-medium text-white flex items-center gap-2">
+              Personal Intelligence <span class="bg-neutral-700 text-neutral-300 text-[10px] px-1.5 py-0.5 rounded">Labs</span>
+            </div>
+            <div class="text-xs text-neutral-400">Personalise chat if helpful</div>
+          </div>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="personalIntelToggle" checked class="sr-only peer">
+          <div class="w-11 h-6 bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gemBlue"></div>
+        </label>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== PROFILE MODAL (Matches Image 106556) ==================== -->
+  <div id="profileBackdrop" onclick="closeProfileModal()" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div onclick="event.stopPropagation()" class="bg-[#191a1e] border border-gemBorder w-full max-w-sm rounded-[28px] p-6 shadow-2xl relative text-neutral-200">
+      
+      <!-- Close button -->
+      <button onclick="closeProfileModal()" class="absolute top-5 right-5 text-neutral-400 hover:text-white p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <!-- User Card (Top) -->
+      <div class="bg-[#24252a] rounded-3xl p-4 flex items-center gap-3.5 mb-3 border border-white/5">
+        <div class="relative">
+          <img id="modalAvatarImg" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" class="w-12 h-12 rounded-full object-cover border-2 border-gemBlue" alt="Profile">
+          <span class="absolute bottom-0 right-0 bg-neutral-900 border border-white/20 p-0.5 rounded-full text-[10px]">✏️</span>
+        </div>
+        <div class="flex-1 overflow-hidden">
+          <h3 id="modalUserName" class="text-base font-medium text-white truncate">Abhivansh Srivastav</h3>
+          <p id="modalUserEmail" class="text-xs text-neutral-400 truncate">abhivanshsrivastav85@gmail.com</p>
+          <span class="inline-block bg-[#1f3763] text-gemBlue text-[11px] font-semibold px-2 py-0.5 rounded-full mt-1">Pro</span>
+        </div>
+        <button class="text-neutral-400 hover:text-white p-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path></svg>
+        </button>
+      </div>
+
+      <!-- Manage Google Account (Image 106556) -->
+      <div onclick="editProfileDetails()" class="bg-[#24252a] hover:bg-[#2c2d33] transition rounded-2xl p-3 flex items-center gap-3 mb-3 cursor-pointer">
+        <svg class="w-4 h-4 shrink-0" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+        </svg>
+        <span class="text-xs font-medium text-white flex-1">Manage your Google Account</span>
+      </div>
+
+      <!-- Manage subscription (PRO) -->
+      <div onclick="alert('Subscription is active: PRO tier.')" class="bg-[#24252a] hover:bg-[#2c2d33] transition rounded-2xl p-3 flex items-center justify-between mb-4 cursor-pointer">
+        <div class="flex items-center gap-3">
+          <svg class="w-4 h-4 text-neutral-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"></path></svg>
+          <span class="text-xs font-medium text-white">Manage subscription</span>
+        </div>
+        <span class="text-xs text-neutral-400 font-medium">PRO</span>
+      </div>
+
+      <!-- Settings Block -->
+      <div class="bg-[#24252a] rounded-2xl overflow-hidden divide-y divide-white/5 mb-6 text-xs">
+        <div onclick="openKeyModal()" class="p-3.5 flex items-center gap-3.5 hover:bg-white/5 cursor-pointer">
+          <svg class="w-4 h-4 text-neutral-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 0 1 0 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 0 1 0-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg>
+          <span class="font-medium text-white">Settings</span>
+        </div>
+        <div onclick="alert('Thank you for your feedback!')" class="p-3.5 flex items-center gap-3.5 hover:bg-white/5 cursor-pointer">
+          <svg class="w-4 h-4 text-neutral-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.502 49.188 49.188 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"></path></svg>
+          <span class="font-medium text-white">Feedback</span>
+        </div>
+        <div onclick="alert('Help center & documentation for Rivanshhai AI.')" class="p-3.5 flex items-center gap-3.5 hover:bg-white/5 cursor-pointer">
+          <svg class="w-4 h-4 text-neutral-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"></path></svg>
+          <span class="font-medium text-white">Help</span>
+        </div>
+      </div>
+
+      <!-- Footer Policy Links (Image 106556) -->
+      <div class="flex items-center justify-center gap-3 text-[11px] text-neutral-400">
+        <a href="javascript:void(0)" onclick="alert('Privacy Policy Details')" class="hover:underline">Privacy Policy</a>
+        <span>•</span>
+        <a href="javascript:void(0)" onclick="alert('Terms of Service Details')" class="hover:underline">Terms of Service</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== API KEY / CUSTOMISE MODAL ==================== -->
+  <div id="apiKeyModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-gemCard border border-gemBorder p-6 rounded-3xl w-full max-w-md shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-medium text-white">Rivanshhai Customisation</h3>
+        <button onclick="closeKeyModal()" class="text-neutral-400 hover:text-white">✕</button>
+      </div>
+      <p class="text-xs text-neutral-400 mb-4 leading-relaxed">
+        Enter your Google Gemini API key to enable live generation for reasoning, vision, code writing and images. Leave blank to run in offline interactive simulation mode.
+      </p>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-neutral-300 font-medium block mb-1">Gemini API Key</label>
+          <input type="password" id="apiKeyInputField" placeholder="AIzaSy..." class="w-full bg-[#121316] border border-gemBorder rounded-xl p-3 text-sm text-white focus:border-gemBlue outline-none">
+        </div>
+        <div>
+          <label class="text-xs text-neutral-300 font-medium block mb-1">Display Name</label>
+          <input type="text" id="userNameField" value="Abhivansh Srivastav" class="w-full bg-[#121316] border border-gemBorder rounded-xl p-3 text-sm text-white focus:border-gemBlue outline-none">
+        </div>
+      </div>
+
+      <div class="mt-5 flex items-center justify-between">
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-gemBlue hover:underline">Get Free API Key ↗</a>
+        <div class="flex items-center gap-2">
+          <button onclick="closeKeyModal()" class="px-4 py-2 rounded-xl bg-neutral-800 text-xs text-neutral-300 hover:bg-neutral-700">Cancel</button>
+          <button onclick="saveCustomSettings()" class="px-5 py-2 rounded-xl bg-gemBlue text-black font-medium text-xs hover:bg-blue-300">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+    // State management
+    let currentModel = '3.8 Flash';
+    let currentMode = 'chat'; // 'chat' or 'task'
+    let currentConversationHistory = [];
+    let currentAttachment = null; // { name, type, dataBase64 }
+    let isLiveActive = false;
+    let isListening = false;
+    let recognitionInstance = null;
+
+    // Default chat list from Reference Image 106555
+    const initialRecentChats = [
+      "Apna Khud Ka AI App Kaise Banayein",
+      "Universal Downloader App Banane Ka Tarika",
+      "Untitled",
+      "RIVANSHHTUBE Player Fix aur Playlist Edit",
+      "Music App UI Khali Space Fix",
+      "RIVANSHH Music App Banane Ka Tareeqa"
+    ];
+
+    // Initialize application
+    window.onload = function() {
+      loadSavedState();
+      renderChatHistorySidebar();
+      initSpeechRecognition();
+    };
+
+    function loadSavedState() {
+      const savedName = localStorage.getItem('rivanshhai_user_name') || 'Abhivansh Srivastav';
+      updateUserDisplayNames(savedName);
+
+      const savedKey = localStorage.getItem('rivanshhai_api_key') || '';
+      document.getElementById('apiKeyInputField').value = savedKey;
+    }
+
+    function updateUserDisplayNames(fullName) {
+      const firstName = fullName.split(' ')[0] || 'Abhivansh';
+      document.getElementById('welcomeUserName').innerText = firstName;
+      document.getElementById('sidebarUserName').innerText = fullName;
+      document.getElementById('modalUserName').innerText = fullName;
+      document.getElementById('userNameField').value = fullName;
+    }
+
+    // Sidebar toggles
+    function toggleSidebar(open) {
+      const drawer = document.getElementById('sidebarDrawer');
+      const backdrop = document.getElementById('sidebarBackdrop');
+      if (open) {
+        backdrop.classList.remove('hidden');
+        drawer.classList.remove('closed');
+      } else {
+        backdrop.classList.add('hidden');
+        drawer.classList.add('closed');
+      }
+    }
+
+    // Tools Bottom Sheet toggles (Images 106552, 106553)
+    function toggleToolsSheet(open) {
+      const sheet = document.getElementById('toolsSheet');
+      const backdrop = document.getElementById('toolsBackdrop');
+      if (open) {
+        backdrop.classList.remove('hidden');
+        sheet.classList.remove('closed');
+      } else {
+        backdrop.classList.add('hidden');
+        sheet.classList.add('closed');
+      }
+    }
+
+    // Model Selector dropdown (Image 106554)
+    function toggleModelDropdown() {
+      const menu = document.getElementById('modelDropdownMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    function selectModel(name, desc) {
+      currentModel = name;
+      document.getElementById('currentModelLabel').innerText = `Rivanshhai ${name.split(' ')[1] || name}`;
+      
+      // Update checkmark indicators
+      document.querySelectorAll('.model-item').forEach(item => {
+        const text = item.innerText;
+        const check = item.querySelector('.check-icon');
+        if (text.includes(name)) {
+          check.classList.remove('hidden');
+        } else {
+          check.classList.add('hidden');
+        }
+      });
+      document.getElementById('modelDropdownMenu').classList.add('hidden');
+    }
+
+    // Profile Modal (Image 106556)
+    function openProfileModal() {
+      document.getElementById('profileBackdrop').classList.remove('hidden');
+    }
+    function closeProfileModal() {
+      document.getElementById('profileBackdrop').classList.add('hidden');
+    }
+
+    // Settings / API Key modal
+    function openKeyModal() {
+      document.getElementById('profileBackdrop').classList.add('hidden');
+      document.getElementById('sidebarDrawer').classList.add('closed');
+      document.getElementById('sidebarBackdrop').classList.add('hidden');
+      document.getElementById('apiKeyModal').classList.remove('hidden');
+    }
+    function closeKeyModal() {
+      document.getElementById('apiKeyModal').classList.add('hidden');
+    }
+
+    function saveCustomSettings() {
+      const key = document.getElementById('apiKeyInputField').value.trim();
+      const name = document.getElementById('userNameField').value.trim() || 'Abhivansh Srivastav';
+      
+      localStorage.setItem('rivanshhai_api_key', key);
+      localStorage.setItem('rivanshhai_user_name', name);
+      updateUserDisplayNames(name);
+      closeKeyModal();
+    }
+
+    function editProfileDetails() {
+      const newName = prompt("Enter your Name:", document.getElementById('modalUserName').innerText);
+      if (newName) {
+        localStorage.setItem('rivanshhai_user_name', newName);
+        updateUserDisplayNames(newName);
+      }
+    }
+
+    // Mode Selector: Chat vs Task
+    function setMode(mode) {
+      currentMode = mode;
+      const chatBtn = document.getElementById('modeChatBtn');
+      const taskBtn = document.getElementById('modeTaskBtn');
+      const input = document.getElementById('mainPromptInput');
+
+      if (mode === 'chat') {
+        chatBtn.className = "px-4 py-1.5 rounded-full bg-[#2a2c31] text-white transition";
+        taskBtn.className = "px-4 py-1.5 rounded-full text-neutral-400 hover:text-white transition";
+        input.placeholder = "Ask Rivanshhai";
+      } else {
+        taskBtn.className = "px-4 py-1.5 rounded-full bg-[#2a2c31] text-white transition";
+        chatBtn.className = "px-4 py-1.5 rounded-full text-neutral-400 hover:text-white transition";
+        input.placeholder = "Assign a goal or task to Rivanshhai...";
+      }
+    }
+
+    // Sidebar Chat History management
+    function renderChatHistorySidebar() {
+      const container = document.getElementById('sidebarChatsContainer');
+      container.innerHTML = '';
+
+      let stored = JSON.parse(localStorage.getItem('rivanshhai_chats_history') || 'null');
+      if (!stored) {
+        stored = initialRecentChats;
+        localStorage.setItem('rivanshhai_chats_history', JSON.stringify(stored));
+      }
+
+      stored.forEach((title, idx) => {
+        const item = document.createElement('div');
+        item.className = "px-3 py-2 text-sm text-neutral-300 hover:bg-white/5 rounded-xl cursor-pointer truncate flex items-center justify-between group";
+        item.innerHTML = `
+          <span class="truncate flex-1">${title}</span>
+          <span class="opacity-0 group-hover:opacity-100 text-xs text-neutral-500 hover:text-red-400 px-1" onclick="deleteChatEntry(event, ${idx})">✕</span>
+        `;
+        item.onclick = (e) => {
+          if (!e.target.innerText.includes('✕')) {
+            loadExistingChat(title);
+            toggleSidebar(false);
+          }
+        };
+        container.appendChild(item);
+      });
+    }
+
+    function deleteChatEntry(e, index) {
+      e.stopPropagation();
+      let stored = JSON.parse(localStorage.getItem('rivanshhai_chats_history') || '[]');
+      stored.splice(index, 1);
+      localStorage.setItem('rivanshhai_chats_history', JSON.stringify(stored));
+      renderChatHistorySidebar();
+    }
+
+    function promptSearchHistory() {
+      const q = prompt("Search conversations:");
+      if (q) {
+        loadExistingChat(q);
+        toggleSidebar(false);
+      }
+    }
+
+    function startNewChat() {
+      currentConversationHistory = [];
+      clearAttachment();
+      document.getElementById('messagesList').innerHTML = '';
+      document.getElementById('messagesList').classList.add('hidden');
+      document.getElementById('homeWelcomeState').classList.remove('hidden');
+    }
+
+    function loadExistingChat(title) {
+      document.getElementById('homeWelcomeState').classList.add('hidden');
+      const list = document.getElementById('messagesList');
+      list.classList.remove('hidden');
+      list.innerHTML = '';
+      currentConversationHistory = [];
+
+      // Create conversation mockup
+      appendMessageToUI('user', `Revisiting conversation: **${title}**`);
+      appendMessageToUI('model', `I've opened your past thread regarding **${title}**. What would you like to continue working on?`);
+    }
+
+    function createNewNotebook() {
+      alert("New Notebook initialized. Add notes and references directly from your conversations.");
+    }
+
+    function openImageMode() {
+      toggleSidebar(false);
+      toggleToolsSheet(true);
+    }
+
+    // Tool item selected from Bottom sheet
+    function selectToolItem(prefixPrompt) {
+      toggleToolsSheet(false);
+      const input = document.getElementById('mainPromptInput');
+      input.value = prefixPrompt;
+      input.focus();
+    }
+
+    // File / Image Attachment handler
+    function handleFileInput(e, source) {
+      toggleToolsSheet(false);
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        currentAttachment = {
+          name: file.name,
+          type: file.type,
+          dataBase64: event.target.result.split(',')[1],
+          fullData: event.target.result
+        };
+
+        const previewContainer = document.getElementById('fileAttachmentPreview');
+        const previewImg = document.getElementById('previewImageElement');
+        const previewIcon = document.getElementById('previewIcon');
+        
+        document.getElementById('previewFileName').innerText = file.name;
+        document.getElementById('previewFileType').innerText = file.type || 'Attached file';
+
+        if (file.type.startsWith('image/')) {
+          previewImg.src = event.target.result;
+          previewImg.classList.remove('hidden');
+          previewIcon.classList.add('hidden');
+        } else {
+          previewImg.classList.add('hidden');
+          previewIcon.classList.remove('hidden');
+        }
+
+        previewContainer.classList.remove('hidden');
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    function clearAttachment() {
+      currentAttachment = null;
+      document.getElementById('fileAttachmentPreview').classList.add('hidden');
+    }
+
+    // Web Speech API Voice Typing
+    function initSpeechRecognition() {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognitionInstance = new SpeechRec();
+        recognitionInstance.continuous = false;
+        recognitionInstance.interimResults = false;
+        recognitionInstance.lang = 'hi-IN';
+
+        recognitionInstance.onresult = (e) => {
+          const text = e.results[0][0].transcript;
+          const input = document.getElementById('mainPromptInput');
+          input.value += (input.value ? ' ' : '') + text;
+          toggleVoiceTyping(false);
+        };
+        recognitionInstance.onerror = () => toggleVoiceTyping(false);
+      }
+    }
+
+    function toggleVoiceTyping(forceState) {
+      if (!recognitionInstance) {
+        alert("Voice speech recognition is not supported in this browser.");
+        return;
+      }
+      const micBtn = document.getElementById('micButton');
+      if (forceState !== undefined) {
+        isListening = forceState;
+      } else {
+        isListening = !isListening;
+      }
+
+      if (isListening) {
+        try {
+          recognitionInstance.start();
+          micBtn.classList.add('text-red-400');
+        } catch (err) {
+          isListening = false;
+        }
+      } else {
+        try {
+          recognitionInstance.stop();
+        } catch (e) {}
+        micBtn.classList.remove('text-red-400');
+      }
+    }
+
+    // Live Voice Audio Simulation (Sound wave pulse)
+    function toggleLiveVoiceConversation() {
+      const pill = document.getElementById('liveAudioPill');
+      isLiveActive = !isLiveActive;
+
+      if (isLiveActive) {
+        pill.classList.add('ring-2', 'ring-gemBlue', 'bg-gemBlue/40');
+        // Announce
+        const synth = window.speechSynthesis;
+        if (synth) {
+          const utter = new SpeechSynthesisUtterance("Rivanshhai Live conversation activated.");
+          synth.speak(utter);
+        }
+      } else {
+        pill.classList.remove('ring-2', 'ring-gemBlue', 'bg-gemBlue/40');
+      }
+    }
+
+    // Input Key handler
+    function handlePromptKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitMessage();
+      }
+    }
+
+    // Send and Execute AI Prompt
+    async function submitMessage() {
+      const input = document.getElementById('mainPromptInput');
+      const text = input.value.trim();
+      
+      if (!text && !currentAttachment) return;
+
+      // Switch to Chat conversation stream
+      document.getElementById('homeWelcomeState').classList.add('hidden');
+      const list = document.getElementById('messagesList');
+      list.classList.remove('hidden');
+
+      // Add to sidebar chat history
+      saveChatTitleToHistory(text || currentAttachment.name);
+
+      // Render User Message
+      appendMessageToUI('user', text, currentAttachment);
+      
+      const sentAttachment = currentAttachment;
+      clearAttachment();
+      input.value = '';
+      input.style.height = 'auto';
+
+      // Skeleton loader for Rivanshhai AI
+      const botRow = appendMessageToUI('model', '...');
+      const contentEl = botRow.querySelector('.content-body');
+      contentEl.innerHTML = `<div class="flex items-center gap-2 text-gemBlue py-1"><span class="animate-pulse">✦</span> Thinking...</div>`;
+
+      // API Key check
+      const apiKey = localStorage.getItem('rivanshhai_api_key');
+
+      if (apiKey) {
+        try {
+          // Direct Gemini API Call with vision & context memory
+          const parts = [];
+          if (text) parts.push({ text: text });
+          if (sentAttachment && sentAttachment.type.startsWith('image/')) {
+            parts.push({
+              inline_data: {
+                mime_type: sentAttachment.type,
+                data: sentAttachment.dataBase64
+              }
+            });
+          }
+
+          const payloadContents = [
+            ...currentConversationHistory.map(c => ({ role: c.role, parts: c.parts })),
+            { role: 'user', parts: parts }
+          ];
+
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: payloadContents,
+              systemInstruction: {
+                parts: [{ text: "You are Rivanshhai, a super intelligent AI assistant matching Google Gemini. You provide thorough, friendly, multi-lingual answers, accurate code, markdown formatting, and thoughtful reasoning." }]
+              }
+            })
+          });
+
+          const data = await res.json();
+          if (data.error) throw new Error(data.error.message);
+
+          const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || "No reply generated.";
+          contentEl.innerHTML = marked.parse(answer);
+          hljs.highlightAll();
+
+          // Context update
+          currentConversationHistory.push({ role: 'user', parts: [{ text: text || "[Attached Media]" }] });
+          currentConversationHistory.push({ role: 'model', parts: [{ text: answer }] });
+
+        } catch (err) {
+          contentEl.innerHTML = `<span class="text-rose-400">Error connecting to Gemini API: ${err.message}</span><br><small class="text-neutral-400">Please check your API key in Settings.</small>`;
+        }
+      } else {
+        // Interactive simulation fallback
+        setTimeout(() => {
+          let mockReply = "";
+          if (sentAttachment) {
+            mockReply = `I've analyzed your attached file (**${sentAttachment.name}**). As **Rivanshhai AI**, I can extract text, generate variations, or inspect components. To connect full live computer vision, configure your free key under **Settings**.`;
+          } else if (text.toLowerCase().includes('code') || text.toLowerCase().includes('python') || text.toLowerCase().includes('html')) {
+            mockReply = "Here is a code example prepared by **Rivanshhai**:\n\n```python\n# Rivanshhai Assistant Engine\ndef initialize_ai():\n    model = 'Rivanshhai-Flash'\n    status = 'Ready'\n    return f'{model} is {status}'\n\nprint(initialize_ai())\n```\nFeel free to ask for any revisions!";
+          } else {
+            mockReply = `Main **Rivanshhai AI** hoon. Aapne pucha: "${text}". Main coding, reasoning, image analysis aur research me aapki poori madad kar sakta hoon. Live Google API responses activate karne ke liye profile avatar -> **Settings** me apni Gemini API Key enter karein.`;
+          }
+          contentEl.innerHTML = marked.parse(mockReply);
+          hljs.highlightAll();
+        }, 800);
+      }
+
+      // Scroll to bottom
+      const scrollArea = document.getElementById('chatScrollArea');
+      scrollArea.scrollTop = scrollArea.scrollHeight;
+    }
+
+    function appendMessageToUI(role, text, attachment) {
+      const list = document.getElementById('messagesList');
+      const row = document.createElement('div');
+      row.className = `flex gap-3.5 ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+      if (role === 'user') {
+        let attachmentHtml = '';
+        if (attachment) {
+          attachmentHtml = attachment.type.startsWith('image/') 
+            ? `<img src="${attachment.fullData}" class="max-w-[200px] max-h-[160px] rounded-xl mb-2 border border-white/10 object-cover">`
+            : `<div class="bg-black/30 p-2 rounded-lg text-xs mb-2">📁 ${attachment.name}</div>`;
+        }
+
+        row.innerHTML = `
+          <div class="max-w-[85%] md:max-w-[70%] bg-[#27282d] text-white px-4 py-3 rounded-2xl rounded-tr-xs text-sm border border-white/5 shadow-md">
+            ${attachmentHtml}
+            <div>${escapeHtml(text)}</div>
+          </div>
+        `;
+      } else {
+        row.innerHTML = `
+          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-gemBlueDark to-gemBlue flex items-center justify-center shrink-0 shadow-lg mt-0.5">
+            <span class="text-xs font-bold text-white">R</span>
+          </div>
+          <div class="flex-1 max-w-[90%] md:max-w-[85%] text-sm text-neutral-200 leading-relaxed overflow-x-auto">
+            <div class="font-medium text-xs text-neutral-400 mb-1">Rivanshhai</div>
+            <div class="content-body bg-transparent">${marked.parse(text || '')}</div>
+          </div>
+        `;
+      }
+
+      list.appendChild(row);
+      const scrollArea = document.getElementById('chatScrollArea');
+      scrollArea.scrollTop = scrollArea.scrollHeight;
+      return row;
+    }
+
+    function saveChatTitleToHistory(title) {
+      const cleanTitle = title.slice(0, 32) + (title.length > 32 ? '...' : '');
+      let stored = JSON.parse(localStorage.getItem('rivanshhai_chats_history') || '[]');
+      if (!stored.includes(cleanTitle)) {
+        stored.unshift(cleanTitle);
+        if (stored.length > 20) stored.pop();
+        localStorage.setItem('rivanshhai_chats_history', JSON.stringify(stored));
+        renderChatHistorySidebar();
+      }
+    }
+
+    function escapeHtml(string) {
+      const entityMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+      return String(string).replace(/[&<>"']/g, s => entityMap[s]);
+    }
+  </script>
+</body>
+</html>
