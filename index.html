@@ -4,9 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Rivanshhai AI</title>
+  
+  <!-- Tailwind CSS & FontAwesome -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Markdown & Code Highlight -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore-compat.js"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Roboto:wght@300;400;500&display=swap');
     * { font-family: 'Google Sans', 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -18,63 +30,16 @@
     .custom-scroll { -ms-overflow-style: none; scrollbar-width: none; }
     @keyframes pulse-slow { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.08); opacity: 1; } }
     .animate-gemini-star { animation: pulse-slow 3s ease-in-out infinite; }
+    pre { background: #18191a; padding: 12px; border-radius: 10px; overflow-x: auto; margin: 8px 0; }
+    code { font-family: monospace; font-size: 13px; }
   </style>
 </head>
 <body class="bg-black text-[#e3e3e3]">
 
-  <!-- Top Navigation Bar -->
-  <header class="flex items-center justify-between px-4 py-3 bg-[#000000]/80 backdrop-blur-md z-30 shrink-0 border-b border-[#1f1f1f]">
-    <button onclick="openDrawer('sidebar')" class="text-xl text-[#c4c7c5] p-2 hover:bg-[#1f1f1f] rounded-full">
-      <i class="fa-solid fa-bars"></i>
-    </button>
-
-    <!-- Model Switcher Dropdown -->
-    <div class="relative">
-      <button onclick="toggleModal('modelModal')" class="flex items-center gap-1.5 text-sm font-medium text-[#e3e3e3] bg-[#1e1f20] px-3.5 py-1.5 rounded-full border border-[#333538]">
-        <span id="currentModelLabel">Rivansh 3.8 Flash</span>
-        <i class="fa-solid fa-chevron-down text-xs text-[#8e918f]"></i>
-      </button>
-
-      <!-- Dropdown Content -->
-      <div id="modelModal" class="hidden absolute top-12 left-1/2 -translate-x-1/2 w-64 bg-[#1e1f20] border border-[#333538] rounded-2xl p-2 shadow-2xl z-50">
-        <div onclick="selectModel('3.5 Flash-Lite')" class="p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
-          <div class="text-sm font-medium">3.5 Flash-Lite</div>
-          <div class="text-xs text-[#8e918f]">Fastest answers</div>
-        </div>
-        <div onclick="selectModel('3.8 Flash')" class="p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer text-[#7cacf8] flex justify-between items-center">
-          <div>
-            <div class="text-sm font-medium">3.8 Flash</div>
-            <div class="text-xs text-[#8e918f]">All-around help</div>
-          </div>
-          <i class="fa-solid fa-check text-xs"></i>
-        </div>
-        <div onclick="selectModel('3.1 Pro')" class="p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
-          <div class="text-sm font-medium">3.1 Pro</div>
-          <div class="text-xs text-[#8e918f]">Advanced reasoning</div>
-        </div>
-        <div onclick="selectModel('4 Argon')" class="p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
-          <div class="text-sm font-medium">4 Argon <span class="text-[10px] bg-[#333538] text-[#a8c7fa] px-1.5 py-0.5 rounded-full ml-1">New</span></div>
-          <div class="text-xs text-[#8e918f]">Complex tasks</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Controls: New Chat & User -->
-    <div class="flex items-center gap-2">
-      <button onclick="startNewChat()" class="text-lg text-[#c4c7c5] p-2 hover:bg-[#1f1f1f] rounded-full">
-        <i class="fa-regular fa-pen-to-square"></i>
-      </button>
-      <button onclick="openDrawer('profileDrawer')" class="w-8 h-8 rounded-full border border-[#444] overflow-hidden">
-        <img src="https://ui-avatars.com/api/?name=Abhivansh+Srivastav&background=1e1f20&color=7cacf8" class="w-full h-full object-cover">
-      </button>
-    </div>
-  </header>
-
-  <!-- Chat Viewport Area -->
-  <main class="flex-1 overflow-y-auto gemini-bg px-4 py-4 custom-scroll relative flex flex-col" id="mainContainer">
-    <!-- Centered Welcome Card -->
-    <div id="welcomeScreen" class="m-auto flex flex-col items-center justify-center text-center px-4 py-8">
-      <div class="w-16 h-16 mb-5 animate-gemini-star">
+  <!-- 1. LOGIN SCREEN (Agar login nahi hai to ye dikhega) -->
+  <div id="authScreen" class="fixed inset-0 bg-black z-50 flex items-center justify-center p-4">
+    <div class="bg-[#1e1f20] border border-[#333538] p-6 rounded-3xl w-full max-w-sm text-center shadow-2xl">
+      <div class="w-16 h-16 mx-auto mb-4 animate-gemini-star">
         <svg viewBox="0 0 100 100" fill="none" class="w-full h-full">
           <path d="M50 0C50 27.6142 27.6142 50 0 50C27.6142 50 50 72.3858 50 100C50 72.3858 72.3858 50 100 50C72.3858 50 50 27.6142 50 0Z" fill="url(#star-grad)"/>
           <defs>
@@ -87,48 +52,126 @@
           </defs>
         </svg>
       </div>
-      <h1 class="text-2xl font-medium text-white mb-2 tracking-tight">Let’s jump in, Abhivansh</h1>
-      <p class="text-sm text-[#8e918f] max-w-xs">Ask anything, generate coding solutions, lyrics, shayari, or prompt ideas.</p>
-    </div>
+      <h1 class="text-2xl font-bold text-white mb-1">Rivanshhai <span class="text-[#7cacf8]">AI</span></h1>
+      <p class="text-xs text-[#8e918f] mb-6">Sign in to sync your personal chat history across all your devices.</p>
 
-    <!-- Active Chat Messages Feed -->
-    <div id="messagesArea" class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-4 hidden"></div>
-  </main>
+      <button onclick="loginWithGoogle()" class="w-full bg-white text-black font-semibold py-3 px-4 rounded-full flex items-center justify-center gap-3 hover:bg-gray-200 transition text-sm mb-3">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-4 h-4"> Continue with Google
+      </button>
 
-  <!-- Bottom Floating Input Area -->
-  <footer class="p-3 bg-black/90 backdrop-blur-lg border-t border-[#1f1f1f] z-20 shrink-0">
-    <!-- Chat / Task Pill -->
-    <div class="flex justify-center mb-2">
-      <div class="flex bg-[#1e1f20] rounded-full p-0.5 border border-[#333538] text-xs">
-        <button id="modeChat" onclick="setMode('chat')" class="px-4 py-1 rounded-full bg-[#2d2e30] text-white">Chat</button>
-        <button id="modeTask" onclick="setMode('task')" class="px-4 py-1 rounded-full text-[#8e918f]">Task</button>
+      <div class="flex items-center gap-2 my-3 text-xs text-[#666]">
+        <div class="flex-1 h-[1px] bg-[#333]"></div>
+        <span>OR PHONE OTP</span>
+        <div class="flex-1 h-[1px] bg-[#333]"></div>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <input id="phoneNumber" type="text" placeholder="+91 9876543210" class="w-full bg-[#131314] border border-[#333538] text-white text-xs p-3 rounded-xl focus:outline-none">
+        <div id="recaptcha-container"></div>
+        <button id="sendOtpBtn" onclick="sendOTP()" class="w-full bg-[#282a2c] hover:bg-[#333538] text-white text-xs py-2.5 rounded-xl font-medium">Send OTP</button>
+      </div>
+
+      <div id="otpBox" class="flex flex-col gap-2 mt-2 hidden">
+        <input id="otpCode" type="text" placeholder="Enter 6-digit OTP" class="w-full bg-[#131314] border border-[#333538] text-white text-xs p-3 rounded-xl focus:outline-none">
+        <button onclick="verifyOTP()" class="w-full bg-[#1a73e8] text-white text-xs py-2.5 rounded-xl font-semibold">Verify & Open App</button>
       </div>
     </div>
+  </div>
 
-    <!-- Input Bar Box -->
-    <div class="max-w-2xl mx-auto bg-[#1e1f20] border border-[#333538] rounded-full px-4 py-2 flex items-center gap-3 shadow-lg">
-      <button onclick="openDrawer('toolsDrawer')" class="text-lg text-[#c4c7c5] hover:text-white">
-        <i class="fa-solid fa-plus"></i>
+  <!-- 2. MAIN APPLICATION -->
+  <div id="appContainer" class="flex-1 flex flex-col h-full hidden">
+    <!-- Top Bar -->
+    <header class="flex items-center justify-between px-4 py-3 bg-[#000000]/80 backdrop-blur-md z-30 shrink-0 border-b border-[#1f1f1f]">
+      <button onclick="openDrawer('sidebar')" class="text-xl text-[#c4c7c5] p-2 hover:bg-[#1f1f1f] rounded-full">
+        <i class="fa-solid fa-bars"></i>
       </button>
 
-      <input id="promptInput" type="text" placeholder="Ask Rivanshhai..." onkeydown="if(event.key==='Enter') sendPrompt()" class="flex-1 bg-transparent text-sm text-white focus:outline-none">
+      <!-- Model Switcher Dropdown -->
+      <div class="relative">
+        <button onclick="toggleModal('modelModal')" class="flex items-center gap-1.5 text-sm font-medium text-[#e3e3e3] bg-[#1e1f20] px-3.5 py-1.5 rounded-full border border-[#333538]">
+          <span id="currentModelLabel">Rivansh 3.8 Flash</span>
+          <i class="fa-solid fa-chevron-down text-xs text-[#8e918f]"></i>
+        </button>
 
-      <button id="micBtn" onclick="toggleVoiceSpeech()" class="text-lg text-[#c4c7c5] hover:text-white">
-        <i class="fa-solid fa-microphone"></i>
-      </button>
+        <div id="modelModal" class="hidden absolute top-12 left-1/2 -translate-x-1/2 w-64 bg-[#1e1f20] border border-[#333538] rounded-2xl p-2 shadow-2xl z-50">
+          <div onclick="selectModel('3.5 Flash-Lite')" class="p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
+            <div class="text-sm font-medium">3.5 Flash-Lite</div>
+            <div class="text-xs text-[#8e918f]">Fastest answers</div>
+          </div>
+          <div onclick="selectModel('3.8 Flash')" class="p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer text-[#7cacf8] flex justify-between items-center">
+            <div>
+              <div class="text-sm font-medium">3.8 Flash</div>
+              <div class="text-xs text-[#8e918f]">All-around help</div>
+            </div>
+            <i class="fa-solid fa-check text-xs"></i>
+          </div>
+          <div onclick="selectModel('3.1 Pro')" class="p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
+            <div class="text-sm font-medium">3.1 Pro</div>
+            <div class="text-xs text-[#8e918f]">Advanced reasoning</div>
+          </div>
+          <div onclick="selectModel('4 Argon')" class="p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
+            <div class="text-sm font-medium">4 Argon <span class="text-[10px] bg-[#333538] text-[#a8c7fa] px-1.5 py-0.5 rounded-full ml-1">New</span></div>
+            <div class="text-xs text-[#8e918f]">Complex tasks</div>
+          </div>
+        </div>
+      </div>
 
-      <button onclick="sendPrompt()" class="w-8 h-8 rounded-full bg-[#1a73e8] flex items-center justify-center text-white text-sm hover:scale-105 active:scale-95 transition">
-        <i class="fa-solid fa-arrow-up"></i>
-      </button>
-    </div>
-  </footer>
+      <div class="flex items-center gap-2">
+        <button onclick="startNewChat()" class="text-lg text-[#c4c7c5] p-2 hover:bg-[#1f1f1f] rounded-full">
+          <i class="fa-regular fa-pen-to-square"></i>
+        </button>
+        <button onclick="openDrawer('profileDrawer')" class="w-8 h-8 rounded-full border border-[#444] overflow-hidden">
+          <img id="userAvatarImg" src="" class="w-full h-full object-cover">
+        </button>
+      </div>
+    </header>
+
+    <!-- Chat Screen Area -->
+    <main class="flex-1 overflow-y-auto gemini-bg px-4 py-4 custom-scroll relative flex flex-col" id="mainContainer">
+      <div id="welcomeScreen" class="m-auto flex flex-col items-center justify-center text-center px-4 py-8">
+        <div class="w-16 h-16 mb-5 animate-gemini-star">
+          <svg viewBox="0 0 100 100" fill="none" class="w-full h-full">
+            <path d="M50 0C50 27.6142 27.6142 50 0 50C27.6142 50 50 72.3858 50 100C50 72.3858 72.3858 50 100 50C72.3858 50 50 27.6142 50 0Z" fill="url(#star-grad)"/>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-medium text-white mb-2 tracking-tight">Let’s jump in, <span id="userDisplayName">Friend</span></h1>
+        <p class="text-sm text-[#8e918f] max-w-xs">Ask physics formulas, programming queries, writing help, or concepts.</p>
+      </div>
+
+      <div id="messagesArea" class="flex flex-col gap-4 max-w-2xl mx-auto w-full pb-4 hidden"></div>
+    </main>
+
+    <!-- Bottom Input Bar -->
+    <footer class="p-3 bg-black/90 backdrop-blur-lg border-t border-[#1f1f1f] z-20 shrink-0">
+      <div class="flex justify-center mb-2">
+        <div class="flex bg-[#1e1f20] rounded-full p-0.5 border border-[#333538] text-xs">
+          <button id="modeChat" onclick="setMode('chat')" class="px-4 py-1 rounded-full bg-[#2d2e30] text-white">Chat</button>
+          <button id="modeTask" onclick="setMode('task')" class="px-4 py-1 rounded-full text-[#8e918f]">Task</button>
+        </div>
+      </div>
+
+      <div class="max-w-2xl mx-auto bg-[#1e1f20] border border-[#333538] rounded-full px-4 py-2 flex items-center gap-3 shadow-lg">
+        <button onclick="openDrawer('toolsDrawer')" class="text-lg text-[#c4c7c5] hover:text-white">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+
+        <input id="promptInput" type="text" placeholder="Ask Rivanshhai anything..." onkeydown="if(event.key==='Enter') sendPrompt()" class="flex-1 bg-transparent text-sm text-white focus:outline-none">
+
+        <button id="micBtn" onclick="toggleVoiceSpeech()" class="text-lg text-[#c4c7c5] hover:text-white">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+
+        <button onclick="sendPrompt()" class="w-8 h-8 rounded-full bg-[#1a73e8] flex items-center justify-center text-white text-sm hover:scale-105 active:scale-95 transition">
+          <i class="fa-solid fa-arrow-up"></i>
+        </button>
+      </div>
+    </footer>
+  </div>
 
   <!-- TOOLS BOTTOM SHEET -->
   <div id="toolsDrawer" class="hidden fixed inset-0 bg-black/60 z-50 flex flex-col justify-end">
     <div class="bg-[#1e1f20] rounded-t-3xl max-h-[80vh] overflow-y-auto p-5 pb-8 border-t border-[#333538] custom-scroll">
       <div class="w-10 h-1 bg-[#444746] rounded-full mx-auto mb-5" onclick="closeDrawer('toolsDrawer')"></div>
-
-      <!-- Carousel -->
       <div class="flex gap-3 overflow-x-auto pb-4 custom-scroll mb-3 text-xs text-center text-[#c4c7c5]">
         <label class="flex flex-col items-center gap-2 bg-[#282a2c] p-3 rounded-2xl min-w-[72px] cursor-pointer">
           <i class="fa-regular fa-image text-xl"></i><span>Photos</span>
@@ -139,36 +182,23 @@
           <input type="file" accept="image/*" capture="environment" class="hidden" onchange="previewSelectedFile(event)">
         </label>
         <div class="flex flex-col items-center gap-2 bg-[#282a2c] p-3 rounded-2xl min-w-[72px]">
-          <i class="fa-regular fa-circle-user text-xl"></i><span>Avatar</span>
-        </div>
-        <div class="flex flex-col items-center gap-2 bg-[#282a2c] p-3 rounded-2xl min-w-[72px]">
           <i class="fa-solid fa-paperclip text-xl"></i><span>Files</span>
         </div>
       </div>
-
-      <!-- Presets List -->
       <div class="flex flex-col gap-1 text-sm">
-        <div onclick="insertPreset('Generate an aesthetic high quality image prompt for ')" class="flex items-center gap-4 p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
-          <i class="fa-regular fa-file-image text-lg text-[#8e918f]"></i>
-          <div><div class="font-medium">Create images</div><div class="text-xs text-[#8e918f]">Visualise and edit</div></div>
+        <div onclick="insertPreset('Explain the complete concept and derivation of ')" class="flex items-center gap-4 p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
+          <i class="fa-solid fa-atom text-lg text-[#8e918f]"></i>
+          <div><div class="font-medium">Deep Research</div><div class="text-xs text-[#8e918f]">Get comprehensive analysis</div></div>
         </div>
-        <div onclick="insertPreset('Generate cinematic video concept for ')" class="flex items-center gap-4 p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
-          <i class="fa-solid fa-clapperboard text-lg text-[#8e918f]"></i>
-          <div><div class="font-medium">Create videos</div><div class="text-xs text-[#8e918f]">Bring ideas to life</div></div>
-        </div>
-        <div onclick="insertPreset('Write music lyrics and composition notes for ')" class="flex items-center gap-4 p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
-          <i class="fa-solid fa-music text-lg text-[#8e918f]"></i>
-          <div><div class="font-medium">Create music</div><div class="text-xs text-[#8e918f]">Make audio tracks</div></div>
-        </div>
-        <div onclick="insertPreset('Code complete interactive frontend for ')" class="flex items-center gap-4 p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
+        <div onclick="insertPreset('Code complete interactive program for ')" class="flex items-center gap-4 p-3 hover:bg-[#282a2c] rounded-xl cursor-pointer">
           <i class="fa-regular fa-square-plus text-lg text-[#8e918f]"></i>
-          <div><div class="font-medium">Canvas</div><div class="text-xs text-[#8e918f]">Code, write or make slides</div></div>
+          <div><div class="font-medium">Canvas & Coding</div><div class="text-xs text-[#8e918f]">Write full scripts & UI</div></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SIDEBAR DRAWER -->
+  <!-- SIDEBAR: PER-USER RECENT CHATS -->
   <div id="sidebar" class="hidden fixed inset-0 bg-black/60 z-50 flex">
     <div class="w-72 bg-[#1e1f20] h-full p-4 flex flex-col justify-between border-r border-[#333538] text-sm">
       <div class="flex flex-col gap-2 overflow-y-auto custom-scroll">
@@ -180,17 +210,14 @@
           <i class="fa-solid fa-plus text-xs"></i> New chat
         </button>
 
-        <div class="text-xs font-semibold text-[#8e918f] uppercase tracking-wider mt-4 px-2">Recent Chats</div>
+        <div class="text-xs font-semibold text-[#8e918f] uppercase tracking-wider mt-4 px-2">Your Recent Chats</div>
         <div class="flex flex-col gap-1 text-xs text-[#c4c7c5]" id="historyList">
-          <div onclick="loadPastPrompt('Apna Khud Ka AI App Kaise Banayein')" class="p-2 hover:bg-[#282a2c] rounded-lg cursor-pointer truncate">Apna Khud Ka AI App Kaise Banayein</div>
-          <div onclick="loadPastPrompt('Universal Downloader App Banane Ka Tarika')" class="p-2 hover:bg-[#282a2c] rounded-lg cursor-pointer truncate">Universal Downloader App Banane Ka Tarika</div>
-          <div onclick="loadPastPrompt('RIVANSHHTUBE Player Fix aur Playlist Edit')" class="p-2 hover:bg-[#282a2c] rounded-lg cursor-pointer truncate">RIVANSHHTUBE Player Fix aur Playlist Edit</div>
-          <div onclick="loadPastPrompt('Music App UI Khali Space Fix')" class="p-2 hover:bg-[#282a2c] rounded-lg cursor-pointer truncate">Music App UI Khali Space Fix</div>
+          <div class="p-2 text-[#666]">No chats yet.</div>
         </div>
       </div>
       <div class="pt-3 border-t border-[#333538] flex items-center justify-between text-xs text-[#8e918f]">
-        <span>Rivanshhai PRO v2.5</span>
-        <i class="fa-solid fa-bolt text-[#7cacf8]"></i>
+        <span>Rivanshhai AI Pro</span>
+        <button onclick="logout()" class="text-red-400 font-semibold hover:underline">Log out</button>
       </div>
     </div>
   </div>
@@ -203,31 +230,248 @@
       </button>
 
       <div class="flex items-center gap-3 mb-5 mt-2">
-        <img src="https://ui-avatars.com/api/?name=Abhivansh+Srivastav&background=1e1f20&color=7cacf8" class="w-14 h-14 rounded-full border border-[#444]">
+        <img id="modalAvatarImg" src="" class="w-14 h-14 rounded-full border border-[#444]">
         <div>
-          <div class="font-medium text-base text-white">Abhivansh Srivastav</div>
-          <div class="text-xs text-[#8e918f] truncate max-w-[190px]">abhivanshsrivastav85@gmail.com</div>
-          <span class="inline-block mt-1 text-[11px] bg-[#1a73e8] text-white font-semibold px-2 py-0.5 rounded-full">Pro</span>
+          <div id="modalUserName" class="font-medium text-base text-white">User</div>
+          <div id="modalUserEmail" class="text-xs text-[#8e918f] truncate max-w-[190px]">user@example.com</div>
+          <span class="inline-block mt-1 text-[11px] bg-[#1a73e8] text-white font-semibold px-2 py-0.5 rounded-full">Pro Active</span>
         </div>
       </div>
 
       <div class="flex flex-col gap-2 text-sm text-[#e3e3e3]">
-        <div class="p-3 bg-[#282a2c] rounded-2xl flex items-center gap-3">
-          <i class="fa-brands fa-google text-base"></i> Google Account Active
-        </div>
         <div class="p-3 bg-[#282a2c] rounded-2xl flex items-center justify-between">
-          <span class="flex items-center gap-3"><i class="fa-solid fa-crown text-yellow-500"></i> Subscription</span>
-          <span class="text-xs text-[#7cacf8] font-bold">PRO UNLOCKED</span>
+          <span class="flex items-center gap-3"><i class="fa-solid fa-cloud text-blue-400"></i> Cloud Sync</span>
+          <span class="text-xs text-green-400 font-bold">SAVED</span>
         </div>
+        <button onclick="logout()" class="w-full text-left p-3 bg-[#282a2c] hover:bg-[#333538] text-red-400 rounded-2xl flex items-center gap-3">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out of Rivanshhai
+        </button>
       </div>
     </div>
   </div>
 
   <script>
-    let activeModel = '3.8 Flash';
+    // 1. FIREBASE CONFIGURATION
+    const firebaseConfig = {
+      apiKey: "AIzaSyAVey_n2yY9_4dI3vm1cTZzQc2cibSgLAc",
+      authDomain: "rivanshhai-ai.firebaseapp.com",
+      projectId: "rivanshhai-ai",
+      storageBucket: "rivanshhai-ai.firebasestorage.app",
+      messagingSenderId: "754613870826",
+      appId: "1:754613870826:web:f3493ee7729570684e5f93"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    let currentSessionId = null;
     let chatMemory = [];
+    let activeModel = '3.8 Flash';
     let isVoiceActive = false;
 
+    // 2. AUTH STATE LISTENER (Har user ka apna login check)
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('appContainer').classList.remove('hidden');
+
+        const name = user.displayName || user.phoneNumber || 'User';
+        const email = user.email || user.phoneNumber || '';
+        const photo = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1e1f20&color=7cacf8`;
+
+        document.getElementById('userDisplayName').innerText = name.split(' ')[0];
+        document.getElementById('modalUserName').innerText = name;
+        document.getElementById('modalUserEmail').innerText = email;
+        document.getElementById('userAvatarImg').src = photo;
+        document.getElementById('modalAvatarImg').src = photo;
+
+        // Load specific user's chat history from Firestore
+        loadUserRecentChats();
+      } else {
+        currentUser = null;
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('appContainer').classList.add('hidden');
+      }
+    });
+
+    function loginWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch(e => alert(e.message));
+    }
+
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
+    function sendOTP() {
+      const phone = document.getElementById('phoneNumber').value.trim();
+      if (!phone) return alert("Phone number dalein with country code e.g. +91...");
+      auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
+        .then(result => {
+          window.confirmationResult = result;
+          document.getElementById('otpBox').classList.remove('hidden');
+          alert("OTP sent!");
+        }).catch(err => alert(err.message));
+    }
+
+    function verifyOTP() {
+      const code = document.getElementById('otpCode').value.trim();
+      window.confirmationResult.confirm(code).catch(err => alert("Galat OTP: " + err.message));
+    }
+
+    function logout() {
+      auth.signOut();
+      closeDrawer('sidebar');
+      closeDrawer('profileDrawer');
+    }
+
+    // 3. PER-USER CHAT HISTORY (FIRESTORE)
+    async function loadUserRecentChats() {
+      if (!currentUser) return;
+      const historyList = document.getElementById('historyList');
+      historyList.innerHTML = '<div class="p-2 text-xs text-[#8e918f]">Loading...</div>';
+
+      const snap = await db.collection('users').doc(currentUser.uid).collection('sessions')
+        .orderBy('updatedAt', 'desc').limit(20).get();
+
+      historyList.innerHTML = '';
+      if (snap.empty) {
+        historyList.innerHTML = '<div class="p-2 text-xs text-[#666]">No previous chats.</div>';
+        return;
+      }
+
+      snap.forEach(doc => {
+        const data = doc.data();
+        const item = document.createElement('div');
+        item.className = "p-2 hover:bg-[#282a2c] rounded-lg cursor-pointer truncate text-[#c4c7c5]";
+        item.innerText = data.title || 'Conversation';
+        item.onclick = () => openPastSession(doc.id, data.messages);
+        historyList.appendChild(item);
+      });
+    }
+
+    async function saveSessionToFirestore(firstMessage) {
+      if (!currentUser) return;
+      if (!currentSessionId) {
+        const title = firstMessage.length > 28 ? firstMessage.substring(0, 28) + '...' : firstMessage;
+        const ref = await db.collection('users').doc(currentUser.uid).collection('sessions').add({
+          title: title,
+          messages: chatMemory,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        currentSessionId = ref.id;
+      } else {
+        await db.collection('users').doc(currentUser.uid).collection('sessions').doc(currentSessionId).update({
+          messages: chatMemory,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      loadUserRecentChats();
+    }
+
+    function openPastSession(sessionId, messages) {
+      currentSessionId = sessionId;
+      chatMemory = messages || [];
+      closeDrawer('sidebar');
+
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      const area = document.getElementById('messagesArea');
+    area.classList.remove('hidden');
+      area.innerHTML = '';
+
+      chatMemory.forEach(msg => {
+        if (msg.role === 'user') {
+          area.innerHTML += `
+            <div class="flex justify-end">
+              <div class="bg-[#282a2c] text-white px-4 py-2 rounded-2xl max-w-[85%] text-sm">${msg.text}</div>
+            </div>`;
+        } else {
+          area.innerHTML += `
+            <div class="flex gap-2.5 items-start">
+              <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white shrink-0 mt-1">R</div>
+              <div class="bg-[#1e1f20] border border-[#333538] text-[#e3e3e3] p-3.5 rounded-2xl max-w-[90%] text-sm leading-relaxed">${marked.parse(msg.text)}</div>
+            </div>`;
+        }
+      });
+      document.getElementById('mainContainer').scrollTop = document.getElementById('mainContainer').scrollHeight;
+    }
+
+    function startNewChat() {
+      currentSessionId = null;
+      chatMemory = [];
+      document.getElementById('welcomeScreen').classList.remove('hidden');
+      document.getElementById('messagesArea').classList.add('hidden');
+      document.getElementById('messagesArea').innerHTML = '';
+      closeDrawer('sidebar');
+    }
+
+    // 4. REAL AI ENGINE (Free Multi-AI API Gateway)
+    async function queryLiveAI(prompt) {
+      // Direct Live AI endpoint (No manual API key required by user)
+      const res = await fetch("https://text.pollinations.ai/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [
+            { role: "system", content: "You are Rivanshhai AI, an intelligent, helpful, and highly accurate AI assistant created by Abhivansh Srivastav. Answer every physics, chemistry, maths, programming, or conversational query thoroughly with formulas, step-by-step reasoning, and clean markdown." },
+            ...chatMemory.map(m => ({ role: m.role, content: m.text })),
+            { role: "user", content: prompt }
+          ],
+          model: "openai"
+        })
+      });
+      return await res.text();
+    }
+
+    async function sendPrompt() {
+      const input = document.getElementById('promptInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      const area = document.getElementById('messagesArea');
+      area.classList.remove('hidden');
+
+      // User Bubble
+      area.innerHTML += `
+        <div class="flex justify-end">
+          <div class="bg-[#282a2c] text-white px-4 py-2 rounded-2xl max-w-[85%] text-sm">${text}</div>
+        </div>
+      `;
+      input.value = '';
+
+      // AI Loading Placeholder
+      const botId = 'bot-' + Date.now();
+      area.innerHTML += `
+        <div class="flex gap-2.5 items-start" id="${botId}">
+          <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white shrink-0 mt-1">R</div>
+          <div class="bg-[#1e1f20] border border-[#333538] text-[#e3e3e3] p-3.5 rounded-2xl max-w-[90%] text-sm leading-relaxed content-box">
+            <div class="animate-pulse flex gap-1 items-center text-xs text-[#8e918f]">Rivanshhai soch raha hai...</div>
+          </div>
+        </div>
+      `;
+
+      const mainContainer = document.getElementById('mainContainer');
+      mainContainer.scrollTop = mainContainer.scrollHeight;
+
+      try {
+        const reply = await queryLiveAI(text);
+        const botContainer = document.querySelector(`#${botId} .content-box`);
+        botContainer.innerHTML = marked.parse(reply);
+        hljs.highlightAll();
+
+        chatMemory.push({ role: 'user', text: text });
+        chatMemory.push({ role: 'assistant', text: reply });
+
+        // Save in user's personal history
+        await saveSessionToFirestore(text);
+      } catch (err) {
+        document.querySelector(`#${botId} .content-box`).innerHTML = `<span class="text-red-400">Connection error. Please try again!</span>`;
+      }
+      mainContainer.scrollTop = mainContainer.scrollHeight;
+    }
+
+    // UI Helpers
     function openDrawer(id) { document.getElementById(id).classList.remove('hidden'); }
     function closeDrawer(id) { document.getElementById(id).classList.add('hidden'); }
     function toggleModal(id) { document.getElementById(id).classList.toggle('hidden'); }
@@ -264,12 +508,6 @@
       }
     }
 
-    function loadPastPrompt(title) {
-      closeDrawer('sidebar');
-      document.getElementById('promptInput').value = title;
-      sendPrompt();
-    }
-
     function toggleVoiceSpeech() {
       if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
         alert('Speech recognition is not supported in this browser.');
@@ -294,68 +532,6 @@
           micBtn.classList.remove('text-red-500');
         };
       }
-    }
-
-    function startNewChat() {
-      chatMemory = [];
-      document.getElementById('welcomeScreen').classList.remove('hidden');
-      document.getElementById('messagesArea').classList.add('hidden');
-      document.getElementById('messagesArea').innerHTML = '';
-      closeDrawer('sidebar');
-    }
-
-    // Built-in intelligent AI response generator (No API key needed)
-    function generateSmartReply(query) {
-      const q = query.toLowerCase();
-      if (q.includes('code') || q.includes('html') || q.includes('css') || q.includes('javascript') || q.includes('python')) {
-        return `Yahan aapka requested code solution ready hai:\n\n\`\`\`javascript\n// Rivanshhai Pro Engine\nfunction initApp() {\n  console.log("Rivanshhai system active for: ${query}");\n  return true;\n}\ninitApp();\n\`\`\`\n\nIsko aap apne project me direct integrate kar sakte hain.`;
-      } else if (q.includes('video') || q.includes('prompt') || q.includes('image')) {
-        return `**Cinematic Visual Prompt:**\n\n> *35mm film grain, moody cinematic lighting, ultra-detailed photorealistic portrait, 8k resolution, Kodak Portra aesthetic.*\n\nYeh prompt Midjourney, Leonardo ya kisi bhi AI generator me best result dega.`;
-      } else if (q.includes('namaste') || q.includes('kaise ho') || q.includes('hello') || q.includes('hi')) {
-        return `Namaste Abhivansh! Main **Rivanshhai AI** hoon. Aaj main aapki website coding, prompt design ya project me kya help karoon?`;
-      } else {
-        return `Rivanshhai AI (${activeModel}) ne aapka sawal analyse kar liya hai:\n\n**Response:**\n${query} ke upar kaam shuru ho chuka hai. Yeh bilkul Gemini Pro logic ke mutabik execute hoga. Agar aapko isme code, specific details ya layout chahiye to batayein!`;
-      }
-    }
-
-    async function sendPrompt() {
-      const input = document.getElementById('promptInput');
-      const text = input.value.trim();
-      if (!text) return;
-
-      document.getElementById('welcomeScreen').classList.add('hidden');
-      const area = document.getElementById('messagesArea');
-      area.classList.remove('hidden');
-
-      // User Message
-      area.innerHTML += `
-        <div class="flex justify-end">
-          <div class="bg-[#282a2c] text-white px-4 py-2 rounded-2xl max-w-[85%] text-sm">${text}</div>
-        </div>
-      `;
-      input.value = '';
-
-      // Bot Placeholder
-      const botId = 'bot-' + Date.now();
-      area.innerHTML += `
-        <div class="flex gap-2.5 items-start" id="${botId}">
-          <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold text-white shrink-0 mt-1">R</div>
-          <div class="bg-[#1e1f20] border border-[#333538] text-[#e3e3e3] p-3.5 rounded-2xl max-w-[90%] text-sm leading-relaxed content-box">
-            <div class="animate-pulse flex gap-1 items-center text-xs text-[#8e918f]">Rivanshhai soch raha hai...</div>
-          </div>
-        </div>
-      `;
-
-      const mainContainer = document.getElementById('mainContainer');
-      mainContainer.scrollTop = mainContainer.scrollHeight;
-
-      // Smart Immediate Response Generation
-      setTimeout(() => {
-        const botContainer = document.querySelector(`#${botId} .content-box`);
-        const reply = generateSmartReply(text);
-        botContainer.innerHTML = marked.parse(reply);
-        mainContainer.scrollTop = mainContainer.scrollHeight;
-      }, 700);
     }
   </script>
 </body>
