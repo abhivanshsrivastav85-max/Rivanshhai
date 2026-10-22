@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rivanshhai AI</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Markdown & Code Highlighter -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <button class="new-chat-btn" onclick="startNewChat()">+ New Chat</button>
+      </div>
+      <div class="chat-history-list" id="chatHistoryList"></div>
+      
+      <div class="sidebar-footer">
+        <button class="api-key-btn" onclick="openKeyModal()">⚙️ Set Gemini API Key</button>
+        <div class="user-badge">⚡ Rivanshhai AI</div>
+      </div>
+    </aside>
+
+    <!-- Main Chat Window -->
+    <main class="chat-viewport">
+      <header class="top-nav">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <h2>Rivanshhai <span>AI</span></h2>
+      </header>
+
+      <section class="messages-container" id="messagesContainer">
+        <div class="welcome-screen" id="welcomeScreen">
+          <h1>Main <span>Rivanshhai</span> hoon.</h1>
+          <p>ChatGPT aur Gemini jaisa aapka personal AI assistant. Puchhiye kuch bhi!</p>
+        </div>
+      </section>
+
+      <!-- Input Bar -->
+      <footer class="input-container">
+        <div class="input-card">
+          <textarea id="userInput" rows="1" placeholder="Message Rivanshhai..." onkeydown="handleEnter(event)"></textarea>
+          <button id="sendBtn" onclick="handleSend()">↑</button>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- API Key Modal -->
+  <div class="modal-overlay" id="keyModal">
+    <div class="modal-card">
+      <h3>Enter Gemini API Key</h3>
+      <p>Aapki key aapke browser me securely save rahegi (kahi upload nahi hoti).</p>
+      <input type="password" id="apiKeyInput" placeholder="AIzaSy..." />
+      <div class="modal-actions">
+        <a href="https://aistudio.google.com/app/apikey" target="_blank">Free Key Yahan Se Lein</a>
+        <div>
+          <button class="btn-cancel" onclick="closeKeyModal()">Cancel</button>
+          <button class="btn-save" onclick="saveApiKey()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
